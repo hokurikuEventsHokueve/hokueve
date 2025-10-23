@@ -16,8 +16,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install requests supabase beautifulsoup4
+      - name: Install dependencies (pip)
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests supabase beautifulsoup4 playwright
+
+      - name: Install Playwright browsers
+        run: |
+          # playwright のブラウザをインストール（ヘッドレスChromium含む）
+          playwright install --with-deps chromium
 
       - name: Run scraperTEST.py
         env:
