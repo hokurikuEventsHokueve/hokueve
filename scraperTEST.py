@@ -24,23 +24,25 @@ def scrape_eplus():
 
     events = []
 
-    # イベントカードを抽出（構造が変わる場合は調整が必要）
-    cards = soup.select("li.TicketList__item")
+    cards = soup.select("a.ticket-item")
 
     for c in cards:
-        title_elem = c.select_one(".TicketList__ttl")
-        date_elem = c.select_one(".TicketList__date")
-        link_elem = c.select_one("a.TicketList__link")
-        img_elem = c.select_one("img")
+        title_elem = c.select_one(".ticket-item__title")
+        year_elem = c.select_one(".ticket-item__yyyy")
+        date_elem = c.select_one(".ticket-item__mmdd")
+        venue_elem = c.select_one(".ticket-item__venue")
+        link = c.get("href")
 
-        title = title_elem.text.strip() if title_elem else "（タイトル不明）"
-        date_text = date_elem.text.strip() if date_elem else None
-        event_url = link_elem["href"] if link_elem else None
-        image_url = img_elem["src"] if img_elem else None
+        title = title_elem.get_text(strip=True) if title_elem else "（タイトル不明）"
+        year = year_elem.get_text(strip=True) if year_elem else ""
+        mmdd = date_elem.get_text(strip=True) if date_elem else ""
+        venue = venue_elem.get_text(strip=True) if venue_elem else ""
+        event_url = f"https://eplus.jp{link}" if link and link.startswith("/") else link
 
         # 日付を整形
         try:
-            date = datetime.strptime(date_text[:10], "%Y.%m.%d").date() if date_text else None
+            date_str = f"{year}.{mmdd}".replace("/", ".")
+            date = datetime.strptime(date_str, "%Y.%m.%d").date()
         except Exception:
             date = None
 
@@ -48,7 +50,7 @@ def scrape_eplus():
             "title": title,
             "date": date,
             "url": event_url,
-            "image_url": image_url,
+            "image_url": None,
             "source": "eplus",
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
