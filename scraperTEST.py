@@ -1,31 +1,35 @@
-import os
-import requests
+# scraperTEST.py
 from bs4 import BeautifulSoup
 from datetime import datetime
 from supabase import create_client, Client
+from playwright.sync_api import sync_playwright
+import os
 
-# Supabase接続設定
+# Supabase 認証情報
 url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_ANON_KEY")
 supabase: Client = create_client(url, key)
 
-# 検索キーワード（金沢市）
+# 検索キーワード
 SEARCH_KEYWORD = "金沢市"
-
-# e+検索URL
-BASE_URL = "https://eplus.jp/sf/search"
-params = {"keyword": SEARCH_KEYWORD}
+BASE_URL = f"https://eplus.jp/sf/search?keyword={SEARCH_KEYWORD}"
 
 def scrape_eplus():
-    print("🔍 e+ からイベントを取得中...")
-    res = requests.get(BASE_URL, params=params)
-    res.raise_for_status()
-    soup = BeautifulSoup(res.text, "html.parser")
+    print("🔍 e+（Playwright）でイベントを取得中...")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(BASE_URL)
+        # チケット要素が描画されるまで最大10秒待機
+        page.wait_for_selector("a.ticket-item", timeout=10000)
+        html = page.content()
+        browser.close()
 
+    # BeautifulSoupでHTMLを解析
+    soup = BeautifulSoup(html, "html.parser")
     events = []
 
     cards = soup.select("a.ticket-item")
-
     for c in cards:
         title_elem = c.select_one(".ticket-item__title")
         year_elem = c.select_one(".ticket-item__yyyy")
@@ -49,6 +53,7 @@ def scrape_eplus():
         events.append({
             "title": title,
             "date": date,
+            "venue": venue,
             "url": event_url,
             "image_url": None,
             "source": "eplus",
