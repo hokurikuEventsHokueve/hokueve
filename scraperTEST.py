@@ -10,9 +10,7 @@ url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_ANON_KEY")
 supabase: Client = create_client(url, key)
 
-# 検索キーワード
-SEARCH_KEYWORD = "金沢市"
-BASE_URL = f"https://eplus.jp/sf/search?keyword={SEARCH_KEYWORD}"
+BASE_URL = "https://eplus.jp/sf/search?block=true&koenKind=1&c_genre_filter=111&c_genre_filter=104&c_genre_filter=101&c_genre_filter=112&c_genre_filter=126&c_genre_filter=113&c_genre_filter=110&c_genre_filter=114&c_genre_filter=115&c_genre_filter=116&c_genre_filter=106&c_genre_filter=107&c_genre_filter=105&c_genre_filter=102&c_genre_filter=108&c_genre_filter=103&c_genre_filter=109&c_genre_filter=122&c_genre_filter=403&todohuken_filter=17&uketsuke_status=0"
 
 def scrape_eplus():
     print("🔍 e+（Playwright）でイベントを取得中...")
